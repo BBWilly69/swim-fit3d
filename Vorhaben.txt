@@ -1,0 +1,1518 @@
+Perfekt, das ist jetzt präzise genug für ein belastbares technisches Design.
+Ich gehe strukturiert vor und übersetze deine Erfahrungswerte direkt in feste Regeln – kein akademisches BlaBla.
+
+🎯 Ziel (präzisiert)
+
+Deterministischer Merge von FORM + Garmin Swim 2, wobei:
+
+Aspekt	Quelle mit Priorität
+Bahnen / Wenden	FORM (Master)
+Startzeit	Garmin, außer klar später gestartet
+Endzeit	Garmin, außer klar früher gestoppt
+Zeitbasis	Garmin
+Distanz	FORM (Bahnen * Poollänge)
+Laps	Rekonstruiert (nicht blind übernommen)
+
+➡ Ergebnis: korrigiertes Workout, nicht „zusammenkopiert“.
+
+🧠 Zentrale Erkenntnisse aus deiner Erfahrung (formalisiert)
+1️⃣ Bahnen / Wenden
+
+FORM: 100 % korrekt
+
+Garmin: systematisch falsch (Turn-Detection)
+➡ FORM bestimmt Anzahl & Position der Bahnen
+
+2️⃣ Startlogik (kritisch!)
+
+FORM:
+
+startet automatisch
+
+triggert erst bei Wasserkontakt
+
+kann zu spät starten
+
+Garmin:
+
+Button → präziser
+
+aber: User-Fehler möglich (zu spät gedrückt)
+
+Regel
+Wenn Garmin.start <= FORM.start + tolerance
+→ Garmin.start ist Wahrheit
+Sonst
+→ FORM.start
+
+
+Empfohlene tolerance: 5 Sekunden
+
+3️⃣ Stopplogik
+
+Garmin:
+
+Button → exakt
+
+kann minimal früher stoppen
+
+FORM:
+
+endet automatisch
+
+oft minimal später
+
+Regel
+Wenn Garmin.stop >= FORM.stop - tolerance
+→ Garmin.stop
+Sonst
+→ FORM.stop
+
+🏗️ Systemarchitektur (Spring Boot)
+Gesamtübersicht
+[ REST API ]
+     |
+     v
+[ Import Service ]
+     |
+     v
+[ Normalization ]
+     |
+     v
+[ Alignment Engine ]   <-- dein Kern
+     |
+     v
+[ Merge Engine ]
+     |
+     v
+[ Export Service ]
+     |
+     v
+[ PostgreSQL ]
+
+📦 Maven Dependencies (bewährt)
+<dependencies>
+    <!-- Spring -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+
+    <!-- DB -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.flywaydb</groupId>
+        <artifactId>flyway-core</artifactId>
+    </dependency>
+
+    <!-- OpenAPI -->
+    <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+    <!-- MapStruct -->
+    <dependency>
+        <groupId>org.mapstruct</groupId>
+        <artifactId>mapstruct</artifactId>
+        <version>1.5.5.Final</version>
+    </dependency>
+
+    <!-- FIT Parsing -->
+    <dependency>
+        <groupId>com.garmin.fit</groupId>
+        <artifactId>fit</artifactId>
+        <version>21.158.0</version>
+    </dependency>
+
+    <!-- TCX / XML -->
+    <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+    </dependency>
+
+    <!-- Tests -->
+    <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+    </dependency>
+</dependencies>
+
+🧩 Domain-Modell (klar & stabil)
+Activity (normalized)
+@Data
+public class SwimActivity {
+
+    private Instant startTime;
+    private Instant endTime;
+
+    private int poolLengthMeters;
+
+    private List<SwimLength> lengths;
+    private List<SwimLap> laps;
+
+    private ActivitySource source;
+}
+
+public enum ActivitySource {
+    GARMIN,
+    FORM,
+    MERGED
+}
+
+SwimLength (FORM dominiert)
+@Data
+public class SwimLength {
+
+    private int index;
+    private Instant start;
+    private Instant end;
+
+    private int distanceMeters;
+    private Integer strokeRate;
+}
+
+SwimLap (rekonstruiert)
+@Data
+public class SwimLap {
+
+    private int lapIndex;
+    private Instant start;
+    private Instant end;
+
+    private int distanceMeters;
+    private Duration duration;
+
+    private LapConfidence confidence;
+}
+
+🧠 Alignment Engine (Kernlogik)
+Start-/Ende-Entscheidung
+Instant resolvedStart = resolveStart(formStart, garminStart);
+Instant resolvedEnd   = resolveEnd(formEnd, garminEnd);
+
+private Instant resolveStart(Instant form, Instant garmin) {
+    if (garmin.isBefore(form.plusSeconds(5))) {
+        return garmin;
+    }
+    return form;
+}
+
+private Instant resolveEnd(Instant form, Instant garmin) {
+    if (garmin.isAfter(form.minusSeconds(5))) {
+        return garmin;
+    }
+    return form;
+}
+
+🧮 Lap-Rekonstruktion (FORM-first!)
+
+FORM liefert Lengths (Bahnen)
+
+Gruppierung zu Laps:
+
+z. B. 100 m = 4 Bahnen
+
+Zeitfenster:
+
+Lap.start = erste Bahn.start
+
+Lap.end = letzte Bahn.end
+
+➡ Garmin-Laps werden nur zur Validierung, nicht zur Definition genutzt.
+
+📊 Confidence Scoring (wichtig!)
+CONFIDENCE_HIGH:
+  - FORM length count == expected
+  - Garmin time overlap > 95 %
+
+CONFIDENCE_MEDIUM:
+  - Kleine Zeitabweichung
+
+CONFIDENCE_LOW:
+  - Start/Stop Konflikte
+
+public enum LapConfidence {
+    HIGH,
+    MEDIUM,
+    LOW
+}
+
+🗄️ PostgreSQL (Flyway Snippet)
+CREATE TABLE swim_activity (
+    id UUID PRIMARY KEY,
+    source VARCHAR(16),
+    start_time TIMESTAMP,
+    end_time TIMESTAMP,
+    pool_length INT
+);
+
+🌐 REST API (OpenAPI)
+POST /api/activities/import/garmin
+POST /api/activities/import/form
+POST /api/activities/merge
+GET  /api/activities/{id}
+
+
+Swagger UI:
+
+/swagger-ui.html
+
+🖥️ Frontend Empfehlung
+React (empfohlen)
+
+Du hast Erfahrung
+
+Visualisierung einfacher
+
+Diff-Charts (Lap vs Lap)
+
+Angular (Lernoption)
+
+Saubere Architektur
+
+Stärker typisiert
+
+Mehr Boilerplate
+
+➡ Ich würde React nehmen, Angular später optional.
+
+🔥 Warum dieses Design funktioniert
+
+✔ nutzt reale Gerätefehler
+✔ FORM da wo es gut ist (Wenden)
+✔ Garmin da wo es gut ist (Zeit)
+✔ kein SDK-Gehacke
+✔ reproduzierbar
+✔ testbar
+
+Nächster sinnvoller Schritt
+
+Ich kann dir als nächstes liefern:
+
+1️⃣ FIT-Importer (Garmin) – Java Code
+2️⃣ FORM-TCX-Importer
+3️⃣ AlignmentEngine komplett
+4️⃣ JUnit Tests mit echten Edge-Cases
+5️⃣ React UI für Lap-Vergleich (Timeline)
+
+🧠 GLOBAL INSTRUCTIONS (für den Copilot Agent)
+You are an expert Java backend engineer.
+
+Target stack:
+- Java 24
+- Spring Boot
+- Maven
+- Lombok
+- MapStruct
+- Spring Data JPA
+- PostgreSQL
+- Flyway
+- OpenAPI / Swagger UI
+- JUnit 5 + Hamcrest
+
+Domain:
+- Swim activity data merging (FORM Smart Swim 2 + Garmin Swim 2)
+
+Hard rules:
+1. NEVER generate incomplete or non-compiling code.
+2. Every public class MUST have JavaDoc.
+3. Every method MUST have JavaDoc describing:
+   - purpose
+   - inputs
+   - outputs
+   - edge cases
+4. No TODOs in generated code unless explicitly requested.
+5. Deterministic logic only (no “magic” heuristics without explanation).
+6. Prefer immutability where possible.
+7. Fail fast with explicit exceptions.
+8. Time handling MUST use java.time (Instant, Duration).
+9. No business logic in controllers.
+
+🗂️ PHASED TODO PLAN (Agent-gesteuert)
+🟦 PHASE 1 – Project Skeleton & Infrastructure
+🎯 Goal
+
+Create a clean, compiling Spring Boot base project with DB + OpenAPI.
+
+🧩 Tasks
+
+Generate Spring Boot project
+
+Configure:
+
+PostgreSQL
+
+Flyway baseline
+
+OpenAPI + Swagger UI
+
+Define base package structure
+
+📁 Package Structure
+de.yourname.swimmerge
+ ├─ config
+ ├─ controller
+ ├─ service
+ ├─ domain
+ ├─ persistence
+ ├─ mapper
+ ├─ importers
+ ├─ merge
+ ├─ export
+ └─ exception
+
+🤖 Copilot Model Recommendation
+
+GPT-4.1
+Reason: boilerplate-heavy, needs correctness, not creativity.
+
+🟦 PHASE 2 – Domain Model (NO parsing yet)
+🎯 Goal
+
+Create normalized domain objects independent of FORM/Garmin.
+
+🧩 Tasks
+
+Implement:
+
+SwimActivity
+
+SwimLap
+
+SwimLength
+
+ActivitySource
+
+LapConfidence
+
+Add full JavaDoc
+
+No persistence annotations yet
+
+⚠️ Rules
+
+Domain must be vendor-neutral
+
+No parsing logic
+
+No JPA annotations
+
+🤖 Model Recommendation
+
+GPT-4.1
+Reason: strict modeling + documentation.
+
+🟦 PHASE 3 – Import Layer (Raw → Normalized)
+🎯 Goal
+
+Parse Garmin FIT and FORM TCX/CSV into normalized domain.
+
+🧩 Tasks
+Garmin
+
+GarminFitImporter
+
+Extract:
+
+start / end
+
+laps
+
+timestamps
+
+Preserve original precision
+
+FORM
+
+FormTcxImporter
+
+Extract:
+
+lengths (TURN-BASED!)
+
+timestamps
+
+stroke metrics
+
+⚠️ Rules
+
+Importers MUST NOT:
+
+merge
+
+align
+
+correct
+
+They only translate formats → domain
+
+🤖 Model Recommendation
+
+GPT-4.1
+Reason: binary format handling, edge cases.
+
+🟦 PHASE 4 – Alignment Engine (Zeit & Grenzen)
+🎯 Goal
+
+Resolve start / stop conflicts deterministically.
+
+🧩 Tasks
+
+Implement ActivityAlignmentService
+
+Apply rules:
+
+Garmin start preferred if <= FORM + 5s
+
+Garmin stop preferred if >= FORM − 5s
+
+Produce AlignedActivityContext
+
+🧠 Explicit Knowledge
+
+FORM start may be delayed (water contact)
+
+Garmin stop is usually more precise
+
+🤖 Model Recommendation
+
+GPT-4.1
+
+🟦 PHASE 5 – Merge Engine (Herzstück)
+🎯 Goal
+
+Create corrected, authoritative swim activity.
+
+🧩 Tasks
+
+Implement SwimMergeService
+
+Rules:
+
+FORM defines lengths & turns
+
+Garmin defines time axis
+
+Distances recalculated from FORM
+
+Build laps from FORM lengths
+
+Attach confidence score per lap
+
+📌 Output
+
+SwimActivity with source = MERGED
+
+🤖 Model Recommendation
+
+GPT-4.1
+
+🟦 PHASE 6 – Persistence Layer
+🎯 Goal
+
+Store merged activities safely & reproducibly.
+
+🧩 Tasks
+
+JPA Entities
+
+Flyway migration
+
+Repositories
+
+Versioned schema
+
+⚠️ Rules
+
+Domain ≠ Entity
+
+MapStruct for mapping
+
+🤖 Model Recommendation
+
+GPT-4.1
+
+🟦 PHASE 7 – REST API & OpenAPI
+🎯 Goal
+
+Expose import / merge / fetch endpoints.
+
+🧩 Tasks
+
+Controllers:
+
+/import/garmin
+
+/import/form
+
+/merge
+
+OpenAPI annotations
+
+Validation
+
+⚠️ Rules
+
+Controllers delegate only
+
+No logic in controllers
+
+🤖 Model Recommendation
+
+GPT-4.1
+
+🟦 PHASE 8 – Validation & Tests (sehr wichtig)
+🎯 Goal
+
+Prove correctness with realistic edge cases.
+
+🧩 Tasks
+
+JUnit 5 tests:
+
+Garmin start earlier
+
+Garmin stop earlier
+
+FORM length mismatch
+
+Hamcrest matchers
+
+Deterministic assertions
+
+🤖 Model Recommendation
+
+GPT-4.1
+
+🟦 PHASE 9 – Frontend (Optional)
+🎯 Goal
+
+Visual lap comparison & correction insight.
+
+🧩 Tasks
+
+React:
+
+Timeline
+
+Lap diff view
+
+Confidence badges
+
+🤖 Model Recommendation
+
+GPT-4o
+Reason: UI creativity + visualization.
+
+🧪 COPILOT PROMPT TEMPLATE (pro Task)
+Implement PHASE X – <ComponentName>.
+
+Constraints:
+- Follow existing architecture
+- No TODOs
+- Full JavaDoc required
+- Deterministic logic only
+- Code must compile
+
+Deliver:
+- Complete implementation
+- Required supporting classes
+- No placeholders
+
+✅ Warum das für Copilot funktioniert
+
+✔ klare Phasen
+✔ kein Kontextverlust
+✔ Modelle passend gewählt
+✔ verhindert halbfertigen Code
+✔ reproduzierbarer Output
+
+Wenn du willst, mache ich dir als Nächstes:
+
+📄 fertige COPILOT_INSTRUCTIONS.md
+
+🧩 Phase-1 Prompt komplett ausgefüllt
+
+🧪 Test-Only Copilot Prompts
+
+🐳 Docker / docker-compose + DB
+
+🧠 Architektur (empfohlen)
+[ React Frontend ]
+        |
+[ API Gateway ]
+        |
+[ Analysis Service ] ---- [ File Processing ]
+        |
+[ PostgreSQL + TimescaleDB ]
+
+
+Containerisiert (Docker), skalierbar (K8s), CDN-fähig.
+
+🎨 Frontend – WOW-LEVEL 🔥
+Framework
+✅ Next.js (App Router)
+
+Warum:
+
+SSR für SEO-Rankings
+
+Streaming UI (Charts sofort sichtbar)
+
+Server Actions für Uploads
+
+Alternative (wenn extrem fancy):
+
+Remix (bessere Data-Flows)
+
+🎞️ Animation & Wow-Effekte
+
+Hier passiert die Magie 👇
+
+🔥 Framer Motion
+
+Morphing Cards
+
+Shared Layout Animations
+
+Page-Transitions
+
+<motion.div layoutId="athlete-card" />
+
+🧬 GSAP
+
+Für:
+
+Scroll-Magic
+
+Parallax
+
+Chart-Morphs
+
+gsap.from(".chart", { scale: 0.8, opacity: 0 })
+
+🌊 React Three Fiber
+
+Für:
+
+3D-Pool
+
+Stroke-Replay
+
+Heatmaps im Raum
+
+✨ UI-Stack
+
+TailwindCSS
+
+shadcn/ui
+
+Radix UI
+
+Lucide Icons
+
+➡ Clean, modern, brutal performant
+
+📊 Charts & Ranking Visuals
+Pflichtstack
+Zweck	Tool
+Line / Area	Recharts
+Vergleich	Nivo
+Heatmaps	D3.js
+Radar	Chart.js
+Animation	Framer Motion
+Ranking Beispiele
+
+🥇 Pace Ranking
+
+🏊 Stroke Efficiency
+
+🔥 Consistency Score
+
+📈 Progress over Time
+
+🧠 Backend – Daten & Analyse
+API
+✅ Spring Boot 3 / Java 24
+
+OpenAPI
+
+MapStruct
+
+Lombok
+
+JUnit 5 + Hamcrest
+
+Perfekt für:
+
+FIT-Parsing
+
+Validierung
+
+Business-Logik
+
+FIT & ZIP Import
+Libraries
+
+Garmin FIT SDK (Java)
+
+ZIP Extraction (java.util.zip)
+
+Pipeline:
+
+ZIP → FIT → Raw Events → Normalized Metrics → DB
+
+Garmin Connect Sync
+
+Zwei Wege:
+
+⚠️ Inoffiziell
+
+garmin-connect-export (Reverse API)
+
+Riskant, kann brechen
+
+✅ Offiziell (empfohlen)
+
+Garmin Health API
+
+OAuth
+
+Webhooks
+
+🧹 Fehlerkorrektur & Datenbereinigung
+
+Beispiele:
+
+Dropouts bei Herzfrequenz
+
+Unrealistische Pace Peaks
+
+Pool-Längen-Fehler
+
+Methoden:
+
+Moving Average
+
+Outlier Detection (Z-Score)
+
+Session Heuristics
+
+if (pace < MIN_PACE || pace > MAX_PACE) discard();
+
+🧠 Analyse-Scores (WOW-Stuff)
+Score	Idee
+Efficiency Score	m / stroke
+Rhythm Score	Pace-Varianz
+Fatigue Curve	Pace vs Zeit
+Consistency Index	StdDev
+Power Estimate	Stroke + HR
+🗄️ Datenbank
+✅ PostgreSQL + TimescaleDB
+
+Warum:
+
+Zeitreihen
+
+Aggregationen
+
+Vergleich ultra schnell
+
+🚀 Deployment
+
+Docker + Docker Compose
+
+Kubernetes (optional)
+
+NGINX Proxy Manager
+
+HTTPS
+
+CDN für Charts & Assets
+
+🔥 Bonus: Ultra-Wow-Features
+
+Session-Replay (Stroke by Stroke)
+
+Vergleichs-Slider (Athlet A ↔ B)
+
+Animated Rank-Transitions
+
+Live-Stat-Morphing
+
+Dark-Mode-Only 😈
+
+🧭 Fazit
+
+Tech-Stack für Maximum Impact
+
+Next.js + Framer Motion
+
+Spring Boot FIT Engine
+
+TimescaleDB
+
+Garmin Health API
+
+GSAP + 3D Visuals
+
+Wenn du willst:
+👉 ich kann dir ein konkretes Datenmodell,
+👉 FIT-Parser-Code,
+👉 oder eine animierte Ranking-Page (React) bauen.
+
+
+
+
+
+MIXAMO – EMPFOHLENE ANIMATIONEN (KONKRET)
+🔹 BASIS (einmal auswählen)
+
+Charakter:
+
+Y Bot (neutral, stabil)
+
+oder ein Stylized Male / Female
+
+🚀 STARTSPRUNG (Block → Wasser)
+✅ BESTER MIXAMO-CLIP
+
+Name (exakt):
+
+Dive
+
+
+Warum gut:
+
+Explosiver Absprung
+
+Saubere Körperstreckung
+
+Funktioniert gut als Startsprung-Ersatz
+
+Einstellungen beim Download:
+
+✔ In Place: AUS
+
+✔ Overdrive: 0
+
+✔ Mirrored: AUS
+
+➡ Action-Name später:
+
+start_dive
+
+🏊 SCHWIMMEN (LOOPS)
+🟢 KRAUL (Freestyle)
+Swimming
+
+
+Unterwasser-Kraul
+
+Loop-fähig
+
+Für Visualisierung absolut ausreichend
+
+➡ Action:
+
+swim_freestyle
+
+🟡 BRUST
+Swimming To Edge
+
+
+Brustähnliche Armbewegung
+
+Nicht perfekt, aber klar erkennbar
+
+➡ Action:
+
+swim_breast
+
+🔵 RÜCKEN
+Backstroke Swim
+
+
+(falls nicht verfügbar, Fallback siehe unten)
+
+➡ Action:
+
+swim_back
+
+
+Fallback (falls nicht vorhanden):
+
+Swimming (Mirrored)
+
+🔴 SCHMETTERLING
+Butterfly Swim
+
+
+(je nach Account sichtbar)
+
+➡ Action:
+
+swim_butterfly
+
+
+Fallback:
+
+Power Swim
+
+🔁 WENDEN (sehr wichtig)
+
+⚠ Mixamo hat keine echten Wettkampf-Wenden
+Aber diese sind visuell gut genug:
+
+🔄 FLIP TURN (Kraul / Rücken)
+Forward Roll
+
+
+oder
+
+Cartwheel
+
+
+➡ Action:
+
+turn_flip
+
+🔁 OPEN TURN (Brust / Schmetterling)
+Wall Push Off
+
+
+oder
+
+Push Off
+
+
+➡ Action:
+
+turn_open
+
+🌊 UNTERWASSER / GLEITEN
+Swimming Idle
+
+
+oder
+
+Treading Water
+
+
+➡ Action:
+
+glide
+
+🧍 IDLE / WARTEN
+Idle
+
+
+➡ Action:
+
+idle
+
+📦 DOWNLOAD-REGELN (SEHR WICHTIG)
+🔹 T-POSE (1×)
+
+Format: FBX for Unity
+
+✔ With Skin
+
+✔ 30 FPS
+
+✔ No Reduction
+
+🔹 ALLE ANIMATIONEN (JEDE EINZELN!)
+
+Format: FBX for Unity
+
+❌ Without Skin
+
+✔ In Place (nur bei Loops)
+
+✔ 30 FPS
+
+✔ No Reduction
+
+🧠 EMPFOHLENE ACTION-NAMEN (FINAL)
+
+Diese Namen GENAU so verwenden:
+
+idle
+start_dive
+swim_freestyle
+swim_breast
+swim_back
+swim_butterfly
+turn_flip
+turn_open
+glide
+
+
+➡ Damit kannst du später 1:1 in React steuern.
+
+⚛️ SPÄTERE STEUERUNG (VORBEREITET)
+actions.start_dive.play()
+actions.swim_freestyle.play()
+actions.turn_flip.play()
+
+
+Oder per State:
+
+setSwimStyle('breast')
+
+✅ WAS DAS DIR BRINGT
+
+✔ 100 % kostenlos
+✔ Linux-tauglich
+✔ Keine Animation selbst bauen
+✔ Sofort nutzbar
+✔ „Comic-realistisch“, aber verständlich
+✔ Ideal für Stats, Rankings, Replays
+
+🅰️ A — MIXAMO KLICK-FÜR-KLICK DOWNLOAD-ANLEITUNG
+1️⃣ Login & Oberfläche
+
+Öffne https://www.mixamo.com
+
+Login (Adobe)
+
+Du siehst:
+
+links: Characters
+
+oben: Animations
+
+rechts: Download Panel
+
+2️⃣ Charakter auswählen (1×)
+Empfehlung (stabil & kostenlos)
+
+Y Bot
+oder
+
+Stylized Male / Female
+
+👉 Einmal anklicken
+Der Charakter steht jetzt in T-Pose.
+
+3️⃣ T-Pose herunterladen (WICHTIG!)
+
+Rechts im Download-Panel:
+
+Option	Wert
+Format	FBX for Unity
+Pose	T-Pose
+Skin	✅ With Skin
+Frames	30
+Keyframe Reduction	None
+
+➡ Download
+
+📁 Datei:
+
+character_TPOSE.fbx
+
+
+⚠️ Das machst du NUR EINMAL
+
+4️⃣ Animationen suchen & prüfen
+
+Oben klicken auf Animations
+Suchfeld nutzen (exakte Begriffe):
+
+🔍 Suchbegriffe (nacheinander):
+Dive
+Swimming
+Swimming To Edge
+Backstroke
+Butterfly
+Forward Roll
+Wall Push Off
+Swimming Idle
+Idle
+
+5️⃣ JEDE Animation EINZELN herunterladen
+Beispiel: Swimming
+
+Animation anklicken
+
+Warten bis sie abgespielt wird
+
+Rechts Einstellungen:
+
+Option	Wert
+In Place	✅
+Overdrive	0
+Mirrored	❌
+Trim	❌
+
+➡ Download
+
+Download-Settings (SEHR WICHTIG)
+Option	Wert
+Format	FBX for Unity
+Skin	❌ Without Skin
+Frames	30
+Keyframe Reduction	None
+
+📁 Datei:
+
+swimming.fbx
+
+
+➡ Das wiederholst du für JEDE Animation
+
+6️⃣ Finale Download-Liste (vollständig)
+
+Am Ende hast du:
+
+character_TPOSE.fbx
+
+idle.fbx
+dive.fbx
+swimming.fbx
+swimming_to_edge.fbx
+backstroke.fbx
+butterfly.fbx
+forward_roll.fbx
+wall_push_off.fbx
+swimming_idle.fbx
+
+
+✅ A fertig
+
+🅱️ B — REACT ANIMATION-STATE-MACHINE (FERTIG)
+
+Jetzt kommt die Steuerlogik, unabhängig vom 3D-Tool.
+Die funktioniert später 1:1 mit deiner .glb.
+
+1️⃣ Feste Action-Namen (MERKEN)
+
+Diese Namen benutzen wir überall:
+
+idle
+start_dive
+swim_freestyle
+swim_breast
+swim_back
+swim_butterfly
+turn_flip
+turn_open
+glide
+
+2️⃣ Swim-State-Enum
+export enum SwimState {
+  IDLE = 'idle',
+  START = 'start_dive',
+  FREESTYLE = 'swim_freestyle',
+  BREAST = 'swim_breast',
+  BACK = 'swim_back',
+  BUTTERFLY = 'swim_butterfly',
+  TURN_FLIP = 'turn_flip',
+  TURN_OPEN = 'turn_open',
+  GLIDE = 'glide',
+}
+
+3️⃣ Animation Controller (React)
+import { useAnimations } from '@react-three/drei'
+import { useEffect, useRef } from 'react'
+
+export function useSwimmerController(scene, animations) {
+  const { actions } = useAnimations(animations, scene)
+  const current = useRef<string | null>(null)
+
+  const play = (name: string, loop = true) => {
+    if (!actions[name]) return
+
+    if (current.current && actions[current.current]) {
+      actions[current.current].fadeOut(0.3)
+    }
+
+    actions[name]
+      .reset()
+      .fadeIn(0.3)
+      .setLoop(loop ? THREE.LoopRepeat : THREE.LoopOnce, 1)
+      .play()
+
+    current.current = name
+  }
+
+  return { play }
+}
+
+4️⃣ Nutzung
+controller.play(SwimState.START, false)
+
+setTimeout(() => {
+  controller.play(SwimState.FREESTYLE)
+}, 2000)
+
+
+➡ Start → Swim → Turn → Swim komplett steuerbar
+➡ Perfekt für FIT-Daten, Replay, Ranking-Vergleich
+
+✅ B fertig
+
+🅲 C — MINIMALER .glb-EXPORT (SO WENIG BLENDER WIE MÖGLICH)
+
+⚠️ Ehrlich:
+Mixamo exportiert kein .glb direkt.
+👉 Ein Mini-Schritt in Blender ist UNVERMEIDBAR, aber:
+
+kein Animieren
+
+kein Rigging
+
+kein Timeline-Gefrickel
+
+nur Import → Export
+
+1️⃣ Blender starten (Linux OK)
+
+Version 4.x
+
+Neue Szene
+
+alles löschen
+
+2️⃣ T-Pose importieren
+File → Import → FBX
+→ character_TPOSE.fbx
+
+3️⃣ Animationen anhängen (NICHT importieren!)
+
+Für jede Animation:
+
+File → Append
+→ animation.fbx
+→ Action
+→ Action auswählen
+→ Append
+
+
+⚠️ NUR Action, nichts anderes!
+
+4️⃣ Action-Namen setzen (1 Minute)
+
+Unten:
+
+Dope Sheet → Action Editor
+
+Jede Action umbenennen:
+
+Alt	Neu
+Dive	start_dive
+Swimming	swim_freestyle
+Swimming To Edge	swim_breast
+Backstroke	swim_back
+Butterfly	swim_butterfly
+Forward Roll	turn_flip
+Wall Push Off	turn_open
+Swimming Idle	glide
+Idle	idle
+5️⃣ Export .glb
+File → Export → glTF 2.0 (.glb)
+
+Einstellungen:
+
+✔ Format: glTF Binary
+
+✔ Include Animations
+
+✔ Apply Transform
+
+✔ +Y Up
+
+➡ Datei:
+
+swimmer.glb
+
+
+1️⃣ FIT-Daten → Animations-Speed
+Idee
+
+Du hast FIT-Dateien von Garmin / SmartSwim2
+
+Wir extrahieren Pace, Stroke Rate, Distance
+
+Animations-Speed wird pro Schwimmer dynamisch angepasst
+
+Beispielcode (React + R3F)
+import { useFrame } from '@react-three/fiber'
+
+export function useSwimAnimation(controller, fitData) {
+  // fitData = Array<{ time: number, distance: number, strokeRate: number }>
+  let lastIndex = 0
+
+  useFrame((state, delta) => {
+    const now = state.clock.getElapsedTime()
+    const data = fitData[lastIndex]
+
+    if (!data) return
+
+    // Pace: m/s
+    const pace = data.strokeRate / 60 // Beispiel: Umrechnung
+    // Animationsgeschwindigkeit
+    const speed = Math.max(0.5, Math.min(2, pace * 1.5))
+
+    controller.actions.swim_freestyle.timeScale = speed
+    controller.actions.swim_breast.timeScale = speed
+    controller.actions.swim_back.timeScale = speed
+    controller.actions.swim_butterfly.timeScale = speed
+
+    lastIndex++
+  })
+}
+
+2️⃣ Turn-Trigger automatisch bei 25 m / 50 m
+Idee
+
+Wir tracken distanceCovered
+
+Bei jeder 25 m / 50 m → Turn-Animation starten
+
+Danach wieder Swim
+
+export function useTurnTrigger(controller, lapLength = 25) {
+  let lastTurn = 0
+
+  return (distance: number) => {
+    if (distance - lastTurn >= lapLength) {
+      lastTurn = distance
+      // Flip / Open Turn je nach Stil
+      controller.play('turn_flip', false)
+      setTimeout(() => {
+        controller.play('swim_freestyle')
+      }, 1000) // Dauer der Turn-Animation
+    }
+  }
+}
+
+3️⃣ Zwei Schwimmer nebeneinander vergleichen
+Setup
+
+Zwei Schwimmer-Komponenten
+
+Beide haben eigene controller + fitData
+
+<group>
+  <RealisticSwimmer
+    position={[-1, 0, 0]}
+    fitData={fitDataSwimmerA}
+    controller={controllerA}
+  />
+  <RealisticSwimmer
+    position={[1, 0, 0]}
+    fitData={fitDataSwimmerB}
+    controller={controllerB}
+  />
+</group>
+
+Doppel-Vergleich
+
+Jede Animation eigenständig gesteuert
+
+Du kannst Speed, Turn, Glide synchronisieren
+
+Perfekt für Rankings / Replays
+
+4️⃣ Wasser-Shader + Splash (ohne Physik)
+Idee
+
+Keine echte Fluid-Simulation → Performance
+
+Particle-System + Material-Shader
+
+Splash bei Turn & Start
+
+Beispiel: Splash-Particle (R3F + Drei)
+import { Points, BufferGeometry, Float32BufferAttribute, PointsMaterial } from 'three'
+import { useMemo } from 'react'
+
+export function WaterSplash({ position = [0,0,0] }) {
+  const points = useMemo(() => {
+    const geometry = new BufferGeometry()
+    const vertices = []
+    for(let i=0;i<200;i++){
+      vertices.push(
+        (Math.random()-0.5)*0.5,
+        Math.random()*0.5,
+        (Math.random()-0.5)*0.5
+      )
+    }
+    geometry.setAttribute('position', new Float32BufferAttribute(vertices,3))
+    return geometry
+  }, [])
+
+  return (
+    <Points geometry={points} position={position}>
+      <PointsMaterial color='aqua' size={0.05} />
+    </Points>
+  )
+}
+
+Splash Trigger Beispiel
+if (distance - lastTurn >= lapLength) {
+  controller.play('turn_flip', false)
+  spawnSplashAtSwimmer(swimmer.position)
+  setTimeout(() => controller.play('swim_freestyle'), 1000)
+}
+
+🧩 Bonus – Wasseroberfläche + Shader (optional)
+<mesh rotation-x={-Math.PI/2} position={[0,0,0]}>
+  <planeGeometry args={[20,50]} />
+  <meshStandardMaterial
+    color='deepskyblue'
+    transparent
+    opacity={0.7}
+    roughness={0.3}
+    metalness={0.1}
+  />
+</mesh>
+
+
+Mit animated noise → Wellen simulieren
+
+Splash particles → Turn & Start
+
+✅ Zusammenfassung
+
+Du hast nun die komplette Pipeline:
+
+FIT → Animations-Speed
+
+Automatische Turns bei 25/50 m
+
+Zwei Schwimmer nebeneinander vergleichen
+
+Wasser-Shader + Splash ohne Physik
+
+Alles ready für React Three Fiber, Linux-kompatibel, Mixamo out-of-the-box.

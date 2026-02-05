@@ -1,0 +1,351 @@
+# Shared Schema Definitions
+# =========================
+
+components:
+  schemas:
+    # Enums
+    ActivitySource:
+      type: string
+      description: Data origin identifier
+      enum:
+        - GARMIN
+        - FORM
+        - MERGED
+      example: MERGED
+
+    LapConfidence:
+      type: string
+      description: Merge quality indicator for lap data
+      enum:
+        - HIGH
+        - MEDIUM
+        - LOW
+      example: HIGH
+
+    # Core DTOs
+    SwimLengthDto:
+      type: object
+      description: Single pool length (one direction)
+      required:
+        - index
+        - startTime
+        - endTime
+        - distanceMeters
+      properties:
+        index:
+          type: integer
+          minimum: 0
+          description: Zero-based index within activity
+          example: 0
+        startTime:
+          type: string
+          format: date-time
+          description: Length start time
+        endTime:
+          type: string
+          format: date-time
+          description: Length end time (wall touch)
+        distanceMeters:
+          type: integer
+          minimum: 1
+          description: Distance in meters (typically pool length)
+          example: 25
+        strokeCount:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Number of strokes
+          example: 18
+        strokeRate:
+          type: integer
+          minimum: 0
+          nullable: true
+          description: Strokes per minute
+          example: 32
+
+    SwimLapDto:
+      type: object
+      description: Logical grouping of lengths
+      required:
+        - lapIndex
+        - startTime
+        - endTime
+        - distanceMeters
+        - durationMillis
+        - lengths
+        - confidence
+      properties:
+        lapIndex:
+          type: integer
+          minimum: 0
+          description: Zero-based lap index
+          example: 0
+        startTime:
+          type: string
+          format: date-time
+          description: First length start time
+        endTime:
+          type: string
+          format: date-time
+          description: Last length end time
+        distanceMeters:
+          type: integer
+          minimum: 1
+          description: Total lap distance
+          example: 100
+        durationMillis:
+          type: integer
+          format: int64
+          minimum: 1
+          description: Lap duration in milliseconds
+          example: 95000
+        lengths:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwimLengthDto'
+          minItems: 1
+        confidence:
+          $ref: '#/components/schemas/LapConfidence'
+        pacePer100m:
+          type: number
+          format: double
+          description: Calculated pace (seconds per 100m)
+          example: 95.0
+
+    SwimActivityDto:
+      type: object
+      description: Complete swim activity session
+      required:
+        - id
+        - startTime
+        - endTime
+        - poolLengthMeters
+        - source
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique activity identifier
+        startTime:
+          type: string
+          format: date-time
+          description: Activity start time
+        endTime:
+          type: string
+          format: date-time
+          description: Activity end time
+        poolLengthMeters:
+          type: integer
+          enum: [25, 50]
+          description: Pool length in meters
+          example: 25
+        totalDistanceMeters:
+          type: integer
+          description: Calculated total distance
+          example: 2000
+        lengthCount:
+          type: integer
+          description: Number of lengths
+          example: 80
+        lapCount:
+          type: integer
+          description: Number of laps
+          example: 20
+        averagePacePer100m:
+          type: number
+          format: double
+          description: Overall average pace
+          example: 97.5
+        source:
+          $ref: '#/components/schemas/ActivitySource'
+        lengths:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwimLengthDto'
+        laps:
+          type: array
+          items:
+            $ref: '#/components/schemas/SwimLapDto'
+
+    SwimActivityCreateDto:
+      type: object
+      description: Data for creating a new activity
+      required:
+        - startTime
+        - endTime
+        - poolLengthMeters
+        - source
+      properties:
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        poolLengthMeters:
+          type: integer
+          enum: [25, 50]
+        source:
+          $ref: '#/components/schemas/ActivitySource'
+
+    # Import/Export DTOs
+    ImportResultDto:
+      type: object
+      description: Result of file import operation
+      required:
+        - success
+        - activityId
+      properties:
+        success:
+          type: boolean
+          description: Import success status
+        activityId:
+          type: string
+          format: uuid
+          description: Created activity ID
+        source:
+          $ref: '#/components/schemas/ActivitySource'
+        lengthsImported:
+          type: integer
+          description: Number of lengths imported
+        lapsImported:
+          type: integer
+          description: Number of laps imported
+        warnings:
+          type: array
+          items:
+            type: string
+          description: Non-fatal issues encountered
+
+    # Merge DTOs
+    MergeRequestDto:
+      type: object
+      description: Request to merge two activities
+      required:
+        - garminActivityId
+        - formActivityId
+      properties:
+        garminActivityId:
+          type: string
+          format: uuid
+          description: ID of Garmin activity
+        formActivityId:
+          type: string
+          format: uuid
+          description: ID of FORM activity
+        options:
+          $ref: '#/components/schemas/MergeOptionsDto'
+
+    MergeOptionsDto:
+      type: object
+      description: Optional merge configuration
+      properties:
+        startToleranceSeconds:
+          type: integer
+          default: 5
+          description: Tolerance for start time alignment
+        endToleranceSeconds:
+          type: integer
+          default: 5
+          description: Tolerance for end time alignment
+        preferGarminTime:
+          type: boolean
+          default: true
+          description: Prefer Garmin time when within tolerance
+
+    MergeResultDto:
+      type: object
+      description: Result of merge operation
+      required:
+        - success
+        - mergedActivity
+      properties:
+        success:
+          type: boolean
+        mergedActivity:
+          $ref: '#/components/schemas/SwimActivityDto'
+        conflicts:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeConflictDto'
+        decisions:
+          type: array
+          items:
+            $ref: '#/components/schemas/MergeDecisionDto'
+
+    MergeConflictDto:
+      type: object
+      description: Detected conflict during merge
+      properties:
+        type:
+          type: string
+          enum:
+            - START_TIME_MISMATCH
+            - END_TIME_MISMATCH
+            - LENGTH_COUNT_MISMATCH
+            - LAP_BOUNDARY_MISMATCH
+        description:
+          type: string
+        garminValue:
+          type: string
+        formValue:
+          type: string
+        resolvedValue:
+          type: string
+
+    MergeDecisionDto:
+      type: object
+      description: Decision made during merge
+      properties:
+        aspect:
+          type: string
+        chosenSource:
+          $ref: '#/components/schemas/ActivitySource'
+        reason:
+          type: string
+
+    # Error Response
+    ProblemDetail:
+      type: object
+      description: RFC 7807 Problem Detail
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
+          format: uri
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    NotFound:
+      description: Entity not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "https://swimmerge.siefeucht.de/errors/not-found"
+            title: "Entity Not Found"
+            status: 404
+            detail: "SwimActivity not found with identifier: 123e4567-e89b-12d3-a456-426614174000"
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetail'
+          example:
+            type: "https://swimmerge.siefeucht.de/errors/validation"
+            title: "Validation Error"
+            status: 400
+            detail: "Validation failed for 'startTime': must not be null"

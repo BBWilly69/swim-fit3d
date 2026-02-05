@@ -1,0 +1,40 @@
+# Swim Data Merge - Git Ignore
+# ============================
+
+# Build output
+target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+*.env
+
+# Garmin FIT SDK (must be installed locally)
+*.fit.jar
+
+# Test output
+test-output/
+surefire-reports/
+
+# Coverage
+jacoco.exec

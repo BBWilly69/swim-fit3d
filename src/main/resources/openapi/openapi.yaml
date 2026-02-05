@@ -1,0 +1,47 @@
+openapi: 3.1.0
+info:
+  title: Swim Data Merge API
+  description: |
+    REST API for merging swim activity data from FORM Smart Swim 2 
+    and Garmin Swim 2 devices.
+  version: 1.0.0
+  contact:
+    name: Swim Merge Support
+    email: support@siefeucht.de
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local Development
+
+tags:
+  - name: Activities
+    description: Swim activity management
+  - name: Import
+    description: Device file import (FIT, TCX, CSV)
+  - name: Merge
+    description: Activity merge operations
+  - name: Export
+    description: Data export operations
+
+paths:
+  # Activity paths defined in activity-api.yaml
+  /activities:
+    $ref: 'activity-api.yaml#/paths/~1activities'
+  /activities/{id}:
+    $ref: 'activity-api.yaml#/paths/~1activities~1{id}'
+  
+  # Import paths defined in import-api.yaml  
+  /import/garmin:
+    $ref: 'import-api.yaml#/paths/~1import~1garmin'
+  /import/form:
+    $ref: 'import-api.yaml#/paths/~1import~1form'
+  
+  # Merge paths defined in merge-api.yaml
+  /merge:
+    $ref: 'merge-api.yaml#/paths/~1merge'
+
+components:
+  schemas:
+    $ref: 'schemas.yaml#/components/schemas'
+  examples:
+    $ref: 'examples.yaml#/components/examples'

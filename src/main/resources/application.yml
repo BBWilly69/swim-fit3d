@@ -1,0 +1,83 @@
+# Swim Data Merge Application Configuration
+# ==========================================
+
+spring:
+  application:
+    name: swimmerge
+
+  # Database Configuration
+  datasource:
+    url: jdbc:postgresql://localhost:5432/swimmerge
+    username: ${DB_USERNAME:swimmerge}
+    password: ${DB_PASSWORD:swimmerge}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 0
+
+  # Jackson Configuration
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+    date-format: "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+    default-property-inclusion: non_null
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+# OpenAPI Configuration
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    displayRequestDuration: true
+    tryItOutEnabled: true
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    de.siefeucht.swimmerge: DEBUG
+    org.springframework.web: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# Application-specific Configuration
+swimmerge:
+  alignment:
+    # Tolerance in seconds for start time alignment
+    # Garmin start is preferred if within this tolerance of FORM start
+    start-tolerance-seconds: 5
+    # Tolerance in seconds for end time alignment
+    # Garmin end is preferred if within this tolerance of FORM end
+    end-tolerance-seconds: 5
+  import:
+    # Supported pool lengths in meters
+    supported-pool-lengths:
+      - 25
+      - 50

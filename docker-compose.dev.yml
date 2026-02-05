@@ -1,0 +1,24 @@
+# Development PostgreSQL Container
+# =================================
+# Start with: docker compose -f docker-compose.dev.yml up -d
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: swimmerge-db-dev
+    environment:
+      POSTGRES_DB: swimmerge
+      POSTGRES_USER: swimmerge
+      POSTGRES_PASSWORD: swimmerge
+    ports:
+      - "5432:5432"
+    volumes:
+      - swimmerge-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U swimmerge -d swimmerge"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  swimmerge-pgdata:

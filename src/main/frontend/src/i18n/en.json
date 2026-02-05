@@ -1,0 +1,261 @@
+{
+  "app": {
+    "title": "SwimMerge",
+    "subtitle": "Swim Data Analytics",
+    "description": "Intelligent swim data analysis and merging"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "activities": "Activities",
+    "import": "Import",
+    "analysis": "Analysis",
+    "community": "Community",
+    "settings": "Settings",
+    "profile": "Profile"
+  },
+  "dashboard": {
+    "welcome": "Welcome back",
+    "overview": "Overview",
+    "recentActivities": "Recent Activities",
+    "weeklyVolume": "Weekly Volume",
+    "monthlyStats": "Monthly Statistics",
+    "personalBests": "Personal Bests",
+    "noData": "No data available",
+    "startImport": "Start with an import"
+  },
+  "stats": {
+    "totalDistance": "Total Distance",
+    "totalTime": "Total Time",
+    "totalSessions": "Sessions",
+    "avgPace": "Avg Pace",
+    "avgHr": "Avg Heart Rate",
+    "avgSwolf": "Avg SWOLF",
+    "totalStrokes": "Total Strokes",
+    "bestPace": "Best Pace",
+    "longestSession": "Longest Session",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year",
+    "allTime": "All Time",
+    "vsLastWeek": "vs. last week",
+    "vsLastMonth": "vs. last month",
+    "improvement": "improvement",
+    "decline": "decline"
+  },
+  "import": {
+    "title": "Import Data",
+    "subtitle": "Upload ZIP archives with FIT or CSV files",
+    "dropzone": {
+      "title": "Drop files here",
+      "subtitle": "or click to browse",
+      "formats": "Supported: ZIP (with FIT/CSV)",
+      "maxSize": "Max size: 100 MB"
+    },
+    "progress": {
+      "title": "Import in progress...",
+      "validating": "Validating archive...",
+      "scanning": "Scanning files...",
+      "processing": "Processing",
+      "complete": "Complete",
+      "error": "Error",
+      "eta": "Estimated time remaining",
+      "speed": "Speed",
+      "filesProcessed": "Files processed"
+    },
+    "result": {
+      "title": "Import Complete",
+      "success": "Successfully imported",
+      "skipped": "Skipped",
+      "errors": "Errors",
+      "activities": "Activities",
+      "laps": "Laps",
+      "lengths": "Lengths",
+      "hrSamples": "HR Samples",
+      "details": "Show details",
+      "report": "Full report"
+    },
+    "errors": {
+      "fileTooLarge": "File too large",
+      "invalidFormat": "Invalid format",
+      "uploadFailed": "Upload failed",
+      "parseFailed": "Parse failed"
+    }
+  },
+  "analysis": {
+    "title": "Analysis",
+    "subtitle": "Deep dive into your swim performance",
+    "paceAnalysis": "Pace Analysis",
+    "strokeAnalysis": "Stroke Analysis",
+    "hrZones": "Heart Rate Zones",
+    "trainingEffect": "Training Effect",
+    "efficiency": "Efficiency",
+    "trends": "Trends",
+    "comparison": "Comparison",
+    "anomalyDetection": "Anomaly Detection",
+    "measurementErrors": "Measurement Errors",
+    "correction": "Correction",
+    "3dView": "3D View",
+    "sessionReplay": "Session Replay",
+    "length": "Length",
+    "loading3D": "Loading 3D view...",
+    "paceTrend": "Pace Trend",
+    "strokeDistribution": "Stroke Distribution",
+    "activityHistory": "Activity History",
+    "insights": "Performance Insights"
+  },
+  "community": {
+    "title": "Community Comparison",
+    "subtitle": "Compare your performance with the community",
+    "ranking": "Ranking",
+    "percentile": "Percentile",
+    "yourPosition": "Your Position",
+    "topPercent": "Top {{percent}}%",
+    "comparison": "Comparison",
+    "byStroke": "By Stroke Type",
+    "byDistance": "By Distance",
+    "dataSource": "Data Source",
+    "mastersSwimming": "Masters Swimming",
+    "triathlon": "Triathlon Statistics",
+    "myResults": "MyResults.eu"
+  },
+  "strokes": {
+    "freestyle": "Freestyle",
+    "breaststroke": "Breaststroke",
+    "backstroke": "Backstroke",
+    "butterfly": "Butterfly",
+    "medley": "Medley",
+    "drill": "Drill",
+    "mixed": "Mixed"
+  },
+  "units": {
+    "meters": "m",
+    "kilometers": "km",
+    "seconds": "s",
+    "minutes": "min",
+    "hours": "h",
+    "pace": "min/100m",
+    "bpm": "bpm",
+    "strokes": "strokes",
+    "strokesPerLength": "strokes/length",
+    "strokesPerMinute": "strokes/min"
+  },
+  "time": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This Week",
+    "lastWeek": "Last Week",
+    "thisMonth": "This Month",
+    "lastMonth": "Last Month",
+    "custom": "Custom"
+  },
+  "settings": {
+    "title": "Settings",
+    "theme": "Theme",
+    "themes": {
+      "light": "Light",
+      "dark": "Dark",
+      "poolBlue": "Pool Blue",
+      "goldMedal": "Gold Medal",
+      "blueMatrix": "Blue Matrix",
+      "blueWave": "Blue Wave"
+    },
+    "language": "Language",
+    "poolLength": "Default Pool Length",
+    "notifications": "Notifications",
+    "dataManagement": "Data Management",
+    "export": "Export Data",
+    "clearCache": "Clear Cache",
+    "about": "About"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "refresh": "Refresh",
+    "retry": "Retry",
+    "success": "Success",
+    "error": "Error",
+    "warning": "Warning",
+    "info": "Info",
+    "yes": "Yes",
+    "no": "No",
+    "all": "All",
+    "none": "None",
+    "select": "Select",
+    "selected": "Selected",
+    "noResults": "No results",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "errors": {
+    "generic": "An error occurred",
+    "network": "Network error",
+    "notFound": "Not found",
+    "unauthorized": "Unauthorized",
+    "serverError": "Server error",
+    "tryAgain": "Please try again"
+  },
+  "hints": {
+    "dragAndDrop": "Drag and drop files here",
+    "clickToUpload": "Click to upload",
+    "selectTheme": "Select your preferred theme",
+    "communityCompare": "Compare yourself with other swimmers",
+    "viewDetails": "Click for details",
+    "hoverForMore": "Hover for more information"
+  },
+  "tooltips": {
+    "pace": "Average time per 100 meters",
+    "swolf": "Swim Golf Score = Time + Strokes per length",
+    "trainingEffect": "Aerobic training effect (1-5)",
+    "hrZone": "Heart rate zone based on max HR",
+    "percentile": "Position compared to the community"
+  },
+  "charts": {
+    "paceTrend": "Pace Trend",
+    "hrZones": "Heart Rate Zones",
+    "activityCalendar": "Activity Calendar",
+    "strokeDistribution": "Stroke Distribution",
+    "swimDays": "Swim Days",
+    "totalDistance": "Total Distance",
+    "maxDistance": "Max Distance",
+    "totalDuration": "Total Duration",
+    "totalLengths": "Total Lengths",
+    "less": "Less",
+    "more": "More",
+    "byDistance": "By Distance",
+    "byDuration": "By Duration"
+  },
+  "replay": {
+    "length": "Length",
+    "stroke": "Stroke",
+    "play": "Play",
+    "pause": "Pause",
+    "reset": "Reset",
+    "previousLength": "Previous length",
+    "nextLength": "Next length",
+    "stepForward": "Step forward",
+    "stepBackward": "Step backward"
+  },
+  "timeline": {
+    "slider": "Timeline slider"
+  },
+  "insights": {
+    "strength": "Strength",
+    "improvement": "Area to Improve",
+    "recommendation": "Recommendation",
+    "consistentPace": "Consistent pace throughout",
+    "turnTechnique": "Turn technique could be faster",
+    "increaseVolume": "Ready for 10% volume increase"
+  }
+}

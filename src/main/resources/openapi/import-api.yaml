@@ -1,0 +1,111 @@
+# Import API Endpoints
+# ====================
+
+paths:
+  /import/garmin:
+    post:
+      tags:
+        - Import
+      summary: Import Garmin FIT file
+      description: |
+        Imports swim activity data from a Garmin Swim 2 FIT file.
+        
+        **Note:** Garmin provides accurate time data (button-triggered start/stop)
+        but may have systematic errors in turn detection.
+      operationId: importGarmin
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Garmin FIT file (.fit)
+                poolLength:
+                  type: integer
+                  description: Pool length in meters (auto-detected if not provided)
+                  enum: [25, 50]
+                  example: 25
+      responses:
+        '201':
+          description: Activity imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/ImportResultDto'
+              examples:
+                success:
+                  $ref: 'examples.yaml#/components/examples/GarminImportSuccess'
+                successWithWarnings:
+                  $ref: 'examples.yaml#/components/examples/GarminImportWithWarnings'
+        '400':
+          description: Import failed
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/ProblemDetail'
+              examples:
+                invalidFormat:
+                  $ref: 'examples.yaml#/components/examples/ImportErrorInvalidFormat'
+                corruptedFile:
+                  $ref: 'examples.yaml#/components/examples/ImportErrorCorrupted'
+
+  /import/form:
+    post:
+      tags:
+        - Import
+      summary: Import FORM TCX/CSV file
+      description: |
+        Imports swim activity data from a FORM Smart Swim 2 file.
+        
+        **Note:** FORM provides 100% accurate turn/length detection via water-contact
+        sensors, but start time may be delayed (water contact trigger).
+        
+        Supported formats:
+        - TCX (Training Center XML)
+        - CSV export
+      operationId: importForm
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: FORM file (.tcx or .csv)
+                poolLength:
+                  type: integer
+                  description: Pool length in meters (auto-detected if not provided)
+                  enum: [25, 50]
+                  example: 25
+      responses:
+        '201':
+          description: Activity imported successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/ImportResultDto'
+              examples:
+                tcxSuccess:
+                  $ref: 'examples.yaml#/components/examples/FormImportTcxSuccess'
+                csvSuccess:
+                  $ref: 'examples.yaml#/components/examples/FormImportCsvSuccess'
+        '400':
+          description: Import failed
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/ProblemDetail'
+              examples:
+                invalidFormat:
+                  $ref: 'examples.yaml#/components/examples/ImportErrorInvalidFormat'

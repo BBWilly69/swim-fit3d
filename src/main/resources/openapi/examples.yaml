@@ -1,0 +1,317 @@
+# OpenAPI Examples for Swagger Dropdown Selection
+# ================================================
+
+components:
+  examples:
+    # Activity List Examples
+    ActivityListSingle:
+      summary: Single activity
+      description: Response with one merged activity
+      value:
+        - id: "123e4567-e89b-12d3-a456-426614174000"
+          startTime: "2026-01-30T06:00:00Z"
+          endTime: "2026-01-30T07:05:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 2000
+          lengthCount: 80
+          lapCount: 20
+          averagePacePer100m: 97.5
+          source: MERGED
+
+    ActivityListMultiple:
+      summary: Multiple activities
+      description: Response with various activity sources
+      value:
+        - id: "123e4567-e89b-12d3-a456-426614174000"
+          startTime: "2026-01-30T06:00:00Z"
+          endTime: "2026-01-30T07:05:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 2000
+          source: MERGED
+        - id: "223e4567-e89b-12d3-a456-426614174001"
+          startTime: "2026-01-28T06:00:00Z"
+          endTime: "2026-01-28T06:45:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 1500
+          source: GARMIN
+        - id: "323e4567-e89b-12d3-a456-426614174002"
+          startTime: "2026-01-25T17:00:00Z"
+          endTime: "2026-01-25T18:00:00Z"
+          poolLengthMeters: 50
+          totalDistanceMeters: 3000
+          source: FORM
+
+    ActivityListEmpty:
+      summary: Empty list
+      description: No activities found
+      value: []
+
+    # Activity Response Examples
+    GarminActivityResponse:
+      summary: Garmin source activity
+      description: Activity imported from Garmin Swim 2 FIT file
+      value:
+        id: "223e4567-e89b-12d3-a456-426614174001"
+        startTime: "2026-01-28T06:00:00Z"
+        endTime: "2026-01-28T06:45:00Z"
+        poolLengthMeters: 25
+        totalDistanceMeters: 1500
+        lengthCount: 60
+        lapCount: 15
+        averagePacePer100m: 100.0
+        source: GARMIN
+        laps:
+          - lapIndex: 0
+            startTime: "2026-01-28T06:00:00Z"
+            endTime: "2026-01-28T06:01:40Z"
+            distanceMeters: 100
+            durationMillis: 100000
+            confidence: MEDIUM
+
+    FormActivityResponse:
+      summary: FORM source activity
+      description: Activity imported from FORM Smart Swim 2
+      value:
+        id: "323e4567-e89b-12d3-a456-426614174002"
+        startTime: "2026-01-25T17:00:03Z"
+        endTime: "2026-01-25T18:00:01Z"
+        poolLengthMeters: 50
+        totalDistanceMeters: 3000
+        lengthCount: 60
+        lapCount: 30
+        averagePacePer100m: 100.0
+        source: FORM
+        lengths:
+          - index: 0
+            startTime: "2026-01-25T17:00:03Z"
+            endTime: "2026-01-25T17:00:48Z"
+            distanceMeters: 50
+            strokeCount: 22
+            strokeRate: 30
+
+    MergedActivityResponse:
+      summary: Merged activity
+      description: Activity merged from FORM and Garmin sources
+      value:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        startTime: "2026-01-30T06:00:00Z"
+        endTime: "2026-01-30T07:05:00Z"
+        poolLengthMeters: 25
+        totalDistanceMeters: 2000
+        lengthCount: 80
+        lapCount: 20
+        averagePacePer100m: 97.5
+        source: MERGED
+        laps:
+          - lapIndex: 0
+            startTime: "2026-01-30T06:00:00Z"
+            endTime: "2026-01-30T06:01:35Z"
+            distanceMeters: 100
+            durationMillis: 95000
+            confidence: HIGH
+            lengths:
+              - index: 0
+                startTime: "2026-01-30T06:00:00Z"
+                endTime: "2026-01-30T06:00:22Z"
+                distanceMeters: 25
+                strokeCount: 18
+                strokeRate: 32
+
+    # Create Activity Examples
+    CreateActivityBasic:
+      summary: Basic activity
+      description: Minimal data for activity creation
+      value:
+        startTime: "2026-01-30T06:00:00Z"
+        endTime: "2026-01-30T07:00:00Z"
+        poolLengthMeters: 25
+        source: GARMIN
+
+    CreateActivityFull:
+      summary: Full activity data
+      description: Complete activity with all optional fields
+      value:
+        startTime: "2026-01-30T06:00:00Z"
+        endTime: "2026-01-30T07:00:00Z"
+        poolLengthMeters: 25
+        source: FORM
+
+    # Import Examples
+    GarminImportSuccess:
+      summary: Successful import
+      description: FIT file imported without issues
+      value:
+        success: true
+        activityId: "223e4567-e89b-12d3-a456-426614174001"
+        source: GARMIN
+        lengthsImported: 60
+        lapsImported: 15
+        warnings: []
+
+    GarminImportWithWarnings:
+      summary: Import with warnings
+      description: FIT file imported with non-fatal issues
+      value:
+        success: true
+        activityId: "223e4567-e89b-12d3-a456-426614174001"
+        source: GARMIN
+        lengthsImported: 58
+        lapsImported: 15
+        warnings:
+          - "2 lengths had missing timestamp data, estimated from adjacent lengths"
+          - "Pool length auto-detected as 25m"
+
+    FormImportTcxSuccess:
+      summary: TCX import success
+      description: FORM TCX file imported successfully
+      value:
+        success: true
+        activityId: "323e4567-e89b-12d3-a456-426614174002"
+        source: FORM
+        lengthsImported: 60
+        lapsImported: 30
+        warnings: []
+
+    FormImportCsvSuccess:
+      summary: CSV import success
+      description: FORM CSV file imported successfully
+      value:
+        success: true
+        activityId: "423e4567-e89b-12d3-a456-426614174003"
+        source: FORM
+        lengthsImported: 80
+        lapsImported: 20
+        warnings:
+          - "Stroke data not available in CSV format"
+
+    ImportErrorInvalidFormat:
+      summary: Invalid file format
+      description: File is not a valid FIT/TCX/CSV
+      value:
+        type: "https://swimmerge.siefeucht.de/errors/import"
+        title: "Import Error"
+        status: 400
+        detail: "Failed to import 'activity.fit': Invalid FIT file header"
+        fileName: "activity.fit"
+
+    ImportErrorCorrupted:
+      summary: Corrupted file
+      description: File appears corrupted
+      value:
+        type: "https://swimmerge.siefeucht.de/errors/import"
+        title: "Import Error"
+        status: 400
+        detail: "Failed to import 'activity.fit': File appears corrupted at offset 1234"
+        fileName: "activity.fit"
+
+    # Merge Examples
+    MergeRequestBasic:
+      summary: Basic merge
+      description: Merge with default options
+      value:
+        garminActivityId: "223e4567-e89b-12d3-a456-426614174001"
+        formActivityId: "323e4567-e89b-12d3-a456-426614174002"
+
+    MergeRequestWithOptions:
+      summary: Merge with custom options
+      description: Merge with custom tolerance settings
+      value:
+        garminActivityId: "223e4567-e89b-12d3-a456-426614174001"
+        formActivityId: "323e4567-e89b-12d3-a456-426614174002"
+        options:
+          startToleranceSeconds: 10
+          endToleranceSeconds: 10
+          preferGarminTime: true
+
+    MergeResultHighConfidence:
+      summary: High confidence merge
+      description: All laps merged with high confidence
+      value:
+        success: true
+        mergedActivity:
+          id: "123e4567-e89b-12d3-a456-426614174000"
+          startTime: "2026-01-30T06:00:00Z"
+          endTime: "2026-01-30T07:05:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 2000
+          source: MERGED
+        conflicts: []
+        decisions:
+          - aspect: "startTime"
+            chosenSource: GARMIN
+            reason: "Garmin start (06:00:00) within 5s tolerance of FORM start (06:00:03)"
+          - aspect: "endTime"
+            chosenSource: GARMIN
+            reason: "Garmin end (07:05:00) within 5s tolerance of FORM end (07:05:01)"
+          - aspect: "lengths"
+            chosenSource: FORM
+            reason: "FORM provides authoritative turn detection"
+
+    MergeResultMixedConfidence:
+      summary: Mixed confidence
+      description: Some laps have lower confidence
+      value:
+        success: true
+        mergedActivity:
+          id: "123e4567-e89b-12d3-a456-426614174000"
+          startTime: "2026-01-30T06:00:00Z"
+          endTime: "2026-01-30T07:05:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 2000
+          source: MERGED
+        conflicts:
+          - type: LENGTH_COUNT_MISMATCH
+            description: "Lap 5 has different length count"
+            garminValue: "3"
+            formValue: "4"
+            resolvedValue: "4 (FORM authoritative)"
+        decisions:
+          - aspect: "lap5.lengths"
+            chosenSource: FORM
+            reason: "FORM turn detection is authoritative"
+
+    MergeResultWithConflicts:
+      summary: Merge with conflicts
+      description: Significant conflicts detected
+      value:
+        success: true
+        mergedActivity:
+          id: "123e4567-e89b-12d3-a456-426614174000"
+          startTime: "2026-01-30T06:00:00Z"
+          endTime: "2026-01-30T07:05:00Z"
+          poolLengthMeters: 25
+          totalDistanceMeters: 2000
+          source: MERGED
+        conflicts:
+          - type: START_TIME_MISMATCH
+            description: "Start times differ by more than tolerance"
+            garminValue: "2026-01-30T06:00:00Z"
+            formValue: "2026-01-30T06:00:12Z"
+            resolvedValue: "2026-01-30T06:00:12Z (FORM used, Garmin outside tolerance)"
+          - type: LENGTH_COUNT_MISMATCH
+            description: "Total length count differs"
+            garminValue: "78"
+            formValue: "80"
+            resolvedValue: "80 (FORM authoritative)"
+        decisions:
+          - aspect: "startTime"
+            chosenSource: FORM
+            reason: "Garmin start (06:00:00) more than 5s before FORM start (06:00:12)"
+
+    MergeErrorIncompatible:
+      summary: Incompatible activities
+      description: Activities cannot be merged
+      value:
+        type: "https://swimmerge.siefeucht.de/errors/validation"
+        title: "Validation Error"
+        status: 400
+        detail: "Cannot merge activities with different pool lengths (25m vs 50m)"
+
+    MergeErrorSameSource:
+      summary: Same source error
+      description: Both activities from same source
+      value:
+        type: "https://swimmerge.siefeucht.de/errors/validation"
+        title: "Validation Error"
+        status: 400
+        detail: "Cannot merge two activities from the same source (both GARMIN)"

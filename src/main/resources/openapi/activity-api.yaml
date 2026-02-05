@@ -1,0 +1,127 @@
+# Activity API Endpoints
+# ======================
+
+paths:
+  /activities:
+    get:
+      tags:
+        - Activities
+      summary: List all activities
+      description: Returns a list of all swim activities, optionally filtered by source.
+      operationId: listActivities
+      parameters:
+        - name: source
+          in: query
+          description: Filter by activity source
+          required: false
+          schema:
+            $ref: 'schemas.yaml#/components/schemas/ActivitySource'
+        - name: from
+          in: query
+          description: Filter activities starting from this date
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          description: Filter activities up to this date
+          required: false
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: 'schemas.yaml#/components/schemas/SwimActivityDto'
+              examples:
+                singleActivity:
+                  $ref: 'examples.yaml#/components/examples/ActivityListSingle'
+                multipleActivities:
+                  $ref: 'examples.yaml#/components/examples/ActivityListMultiple'
+                emptyList:
+                  $ref: 'examples.yaml#/components/examples/ActivityListEmpty'
+    
+    post:
+      tags:
+        - Activities
+      summary: Create a new activity
+      description: Creates a new swim activity from provided data.
+      operationId: createActivity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/SwimActivityCreateDto'
+            examples:
+              basicActivity:
+                $ref: 'examples.yaml#/components/examples/CreateActivityBasic'
+              fullActivity:
+                $ref: 'examples.yaml#/components/examples/CreateActivityFull'
+      responses:
+        '201':
+          description: Activity created
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/SwimActivityDto'
+        '400':
+          $ref: 'schemas.yaml#/components/responses/ValidationError'
+
+  /activities/{id}:
+    get:
+      tags:
+        - Activities
+      summary: Get activity by ID
+      description: Returns a single swim activity by its unique identifier.
+      operationId: getActivityById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Activity UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Activity found
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/SwimActivityDto'
+              examples:
+                garminActivity:
+                  $ref: 'examples.yaml#/components/examples/GarminActivityResponse'
+                formActivity:
+                  $ref: 'examples.yaml#/components/examples/FormActivityResponse'
+                mergedActivity:
+                  $ref: 'examples.yaml#/components/examples/MergedActivityResponse'
+        '404':
+          $ref: 'schemas.yaml#/components/responses/NotFound'
+    
+    delete:
+      tags:
+        - Activities
+      summary: Delete activity
+      description: Permanently deletes a swim activity and all associated data.
+      operationId: deleteActivity
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Activity UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Activity deleted
+        '404':
+          $ref: 'schemas.yaml#/components/responses/NotFound'

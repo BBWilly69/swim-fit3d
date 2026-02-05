@@ -1,0 +1,69 @@
+# Merge API Endpoints
+# ===================
+
+paths:
+  /merge:
+    post:
+      tags:
+        - Merge
+      summary: Merge two activities
+      description: |
+        Deterministically merges swim activity data from FORM and Garmin sources.
+        
+        ## Merge Rules
+        
+        | Aspect | Source | Reason |
+        |--------|--------|--------|
+        | Lengths/Turns | FORM | 100% accurate turn detection |
+        | Start Time | Garmin* | Button-triggered precision |
+        | End Time | Garmin* | Button-triggered precision |
+        | Time Base | Garmin | Consistent clock |
+        | Distance | Calculated | FORM lengths × pool length |
+        
+        *Garmin time is used only if within tolerance (default: 5 seconds) of FORM time.
+        
+        ## Confidence Scoring
+        
+        Each lap in the merged activity receives a confidence score:
+        - **HIGH**: FORM length count matches expected, Garmin time overlap > 95%
+        - **MEDIUM**: Minor time deviation between sources
+        - **LOW**: Start/stop conflicts or significant discrepancies
+      operationId: mergeActivities
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: 'schemas.yaml#/components/schemas/MergeRequestDto'
+            examples:
+              basicMerge:
+                $ref: 'examples.yaml#/components/examples/MergeRequestBasic'
+              mergeWithOptions:
+                $ref: 'examples.yaml#/components/examples/MergeRequestWithOptions'
+      responses:
+        '200':
+          description: Activities merged successfully
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/MergeResultDto'
+              examples:
+                highConfidence:
+                  $ref: 'examples.yaml#/components/examples/MergeResultHighConfidence'
+                mixedConfidence:
+                  $ref: 'examples.yaml#/components/examples/MergeResultMixedConfidence'
+                withConflicts:
+                  $ref: 'examples.yaml#/components/examples/MergeResultWithConflicts'
+        '400':
+          description: Merge failed
+          content:
+            application/json:
+              schema:
+                $ref: 'schemas.yaml#/components/schemas/ProblemDetail'
+              examples:
+                incompatibleActivities:
+                  $ref: 'examples.yaml#/components/examples/MergeErrorIncompatible'
+                sameSource:
+                  $ref: 'examples.yaml#/components/examples/MergeErrorSameSource'
+        '404':
+          $ref: 'schemas.yaml#/components/responses/NotFound'

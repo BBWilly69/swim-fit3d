@@ -1,0 +1,261 @@
+{
+  "app": {
+    "title": "SwimMerge",
+    "subtitle": "Swim Data Analytics",
+    "description": "Intelligente Schwimmdaten-Analyse und -Zusammenführung"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "activities": "Aktivitäten",
+    "import": "Import",
+    "analysis": "Analyse",
+    "community": "Community",
+    "settings": "Einstellungen",
+    "profile": "Profil"
+  },
+  "dashboard": {
+    "welcome": "Willkommen zurück",
+    "overview": "Übersicht",
+    "recentActivities": "Letzte Aktivitäten",
+    "weeklyVolume": "Wochenvolumen",
+    "monthlyStats": "Monatsstatistik",
+    "personalBests": "Persönliche Bestzeiten",
+    "noData": "Keine Daten vorhanden",
+    "startImport": "Starten Sie mit einem Import"
+  },
+  "stats": {
+    "totalDistance": "Gesamtdistanz",
+    "totalTime": "Gesamtzeit",
+    "totalSessions": "Sessions",
+    "avgPace": "Ø Pace",
+    "avgHr": "Ø Herzfrequenz",
+    "avgSwolf": "Ø SWOLF",
+    "totalStrokes": "Gesamtzüge",
+    "bestPace": "Beste Pace",
+    "longestSession": "Längste Session",
+    "thisWeek": "Diese Woche",
+    "thisMonth": "Diesen Monat",
+    "thisYear": "Dieses Jahr",
+    "allTime": "Gesamt",
+    "vsLastWeek": "vs. letzte Woche",
+    "vsLastMonth": "vs. letzter Monat",
+    "improvement": "Verbesserung",
+    "decline": "Rückgang"
+  },
+  "import": {
+    "title": "Daten importieren",
+    "subtitle": "ZIP-Archive mit FIT- oder CSV-Dateien hochladen",
+    "dropzone": {
+      "title": "Dateien hier ablegen",
+      "subtitle": "oder klicken zum Auswählen",
+      "formats": "Unterstützt: ZIP (mit FIT/CSV)",
+      "maxSize": "Max. Größe: 100 MB"
+    },
+    "progress": {
+      "title": "Import läuft...",
+      "validating": "Validiere Archiv...",
+      "scanning": "Scanne Dateien...",
+      "processing": "Verarbeite",
+      "complete": "Abgeschlossen",
+      "error": "Fehler",
+      "eta": "Geschätzte Restzeit",
+      "speed": "Geschwindigkeit",
+      "filesProcessed": "Dateien verarbeitet"
+    },
+    "result": {
+      "title": "Import abgeschlossen",
+      "success": "Erfolgreich importiert",
+      "skipped": "Übersprungen",
+      "errors": "Fehler",
+      "activities": "Aktivitäten",
+      "laps": "Runden",
+      "lengths": "Bahnen",
+      "hrSamples": "HR-Samples",
+      "details": "Details anzeigen",
+      "report": "Vollständiger Bericht"
+    },
+    "errors": {
+      "fileTooLarge": "Datei zu groß",
+      "invalidFormat": "Ungültiges Format",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "parseFailed": "Parsing fehlgeschlagen"
+    }
+  },
+  "analysis": {
+    "title": "Analyse",
+    "subtitle": "Tiefgehende Analyse deiner Schwimmleistung",
+    "paceAnalysis": "Pace-Analyse",
+    "strokeAnalysis": "Zuganalyse",
+    "hrZones": "Herzfrequenz-Zonen",
+    "trainingEffect": "Trainingseffekt",
+    "efficiency": "Effizienz",
+    "trends": "Trends",
+    "comparison": "Vergleich",
+    "anomalyDetection": "Anomalie-Erkennung",
+    "measurementErrors": "Messfehler",
+    "correction": "Korrektur",
+    "3dView": "3D-Ansicht",
+    "sessionReplay": "Session-Replay",
+    "length": "Bahn",
+    "loading3D": "3D-Ansicht wird geladen...",
+    "paceTrend": "Pace-Trend",
+    "strokeDistribution": "Zugverteilung",
+    "activityHistory": "Aktivitätsverlauf",
+    "insights": "Leistungsanalyse"
+  },
+  "community": {
+    "title": "Community-Vergleich",
+    "subtitle": "Vergleichen Sie Ihre Leistung mit der Community",
+    "ranking": "Ranking",
+    "percentile": "Perzentil",
+    "yourPosition": "Ihre Position",
+    "topPercent": "Top {{percent}}%",
+    "comparison": "Vergleich",
+    "byStroke": "Nach Schwimmstil",
+    "byDistance": "Nach Distanz",
+    "dataSource": "Datenquelle",
+    "mastersSwimming": "Masters Swimming",
+    "triathlon": "Triathlon-Statistiken",
+    "myResults": "MyResults.eu"
+  },
+  "strokes": {
+    "freestyle": "Kraul",
+    "breaststroke": "Brust",
+    "backstroke": "Rücken",
+    "butterfly": "Schmetterling",
+    "medley": "Lagen",
+    "drill": "Technik",
+    "mixed": "Gemischt"
+  },
+  "units": {
+    "meters": "m",
+    "kilometers": "km",
+    "seconds": "s",
+    "minutes": "min",
+    "hours": "h",
+    "pace": "min/100m",
+    "bpm": "bpm",
+    "strokes": "Züge",
+    "strokesPerLength": "Züge/Bahn",
+    "strokesPerMinute": "Züge/min"
+  },
+  "time": {
+    "today": "Heute",
+    "yesterday": "Gestern",
+    "thisWeek": "Diese Woche",
+    "lastWeek": "Letzte Woche",
+    "thisMonth": "Diesen Monat",
+    "lastMonth": "Letzter Monat",
+    "custom": "Benutzerdefiniert"
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "theme": "Design",
+    "themes": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "poolBlue": "Pool Blue",
+      "goldMedal": "Gold Medal",
+      "blueMatrix": "Blue Matrix",
+      "blueWave": "Blue Wave"
+    },
+    "language": "Sprache",
+    "poolLength": "Standard-Bahnlänge",
+    "notifications": "Benachrichtigungen",
+    "dataManagement": "Datenverwaltung",
+    "export": "Daten exportieren",
+    "clearCache": "Cache leeren",
+    "about": "Über"
+  },
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "edit": "Bearbeiten",
+    "view": "Anzeigen",
+    "close": "Schließen",
+    "confirm": "Bestätigen",
+    "back": "Zurück",
+    "next": "Weiter",
+    "previous": "Zurück",
+    "search": "Suchen",
+    "filter": "Filtern",
+    "sort": "Sortieren",
+    "refresh": "Aktualisieren",
+    "retry": "Erneut versuchen",
+    "success": "Erfolg",
+    "error": "Fehler",
+    "warning": "Warnung",
+    "info": "Info",
+    "yes": "Ja",
+    "no": "Nein",
+    "all": "Alle",
+    "none": "Keine",
+    "select": "Auswählen",
+    "selected": "Ausgewählt",
+    "noResults": "Keine Ergebnisse",
+    "showMore": "Mehr anzeigen",
+    "showLess": "Weniger anzeigen"
+  },
+  "errors": {
+    "generic": "Ein Fehler ist aufgetreten",
+    "network": "Netzwerkfehler",
+    "notFound": "Nicht gefunden",
+    "unauthorized": "Nicht autorisiert",
+    "serverError": "Serverfehler",
+    "tryAgain": "Bitte versuchen Sie es erneut"
+  },
+  "hints": {
+    "dragAndDrop": "Ziehen Sie Dateien per Drag & Drop hierher",
+    "clickToUpload": "Klicken Sie zum Hochladen",
+    "selectTheme": "Wählen Sie Ihr bevorzugtes Design",
+    "communityCompare": "Vergleichen Sie sich mit anderen Schwimmern",
+    "viewDetails": "Klicken für Details",
+    "hoverForMore": "Hover für mehr Informationen"
+  },
+  "tooltips": {
+    "pace": "Durchschnittliche Zeit pro 100 Meter",
+    "swolf": "Swim Golf Score = Zeit + Züge pro Bahn",
+    "trainingEffect": "Aerober Trainingseffekt (1-5)",
+    "hrZone": "Herzfrequenzzone basierend auf max. HF",
+    "percentile": "Position im Vergleich zur Community"
+  },
+  "charts": {
+    "paceTrend": "Pace-Entwicklung",
+    "hrZones": "Herzfrequenz-Zonen",
+    "activityCalendar": "Aktivitätskalender",
+    "strokeDistribution": "Schwimmstil-Verteilung",
+    "swimDays": "Schwimmtage",
+    "totalDistance": "Gesamtdistanz",
+    "maxDistance": "Max. Distanz",
+    "totalDuration": "Gesamtzeit",
+    "totalLengths": "Bahnen gesamt",
+    "less": "Weniger",
+    "more": "Mehr",
+    "byDistance": "Nach Distanz",
+    "byDuration": "Nach Zeit"
+  },
+  "replay": {
+    "length": "Bahn",
+    "stroke": "Zug",
+    "play": "Abspielen",
+    "pause": "Pausieren",
+    "reset": "Zurücksetzen",
+    "previousLength": "Vorherige Bahn",
+    "nextLength": "Nächste Bahn",
+    "stepForward": "Vorwärts",
+    "stepBackward": "Zurück"
+  },
+  "timeline": {
+    "slider": "Zeitleisten-Regler"
+  },
+  "insights": {
+    "strength": "Stärke",
+    "improvement": "Verbesserungspotenzial",
+    "recommendation": "Empfehlung",
+    "consistentPace": "Konstante Pace durchgehend",
+    "turnTechnique": "Wende-Technik könnte schneller sein",
+    "increaseVolume": "Bereit für 10% mehr Umfang"
+  }
+}
